@@ -22,13 +22,13 @@ object TestActor:
           externalActor ! ExternalMessage(
             "Tag.Self",
             ctx.messageAdapter[String]: response =>
-              ItemStored(response, Tag.Self)  // Should capture Tag.Self but captures Tag.Peer
+              ItemStored("adapterSelf: " + response, Tag.Self)  // Should capture Tag.Self but captures Tag.Peer
           )
 
           externalActor ! ExternalMessage(
             "Tag.Peer",
             ctx.messageAdapter[String]: response =>
-              ItemStored(response, Tag.Peer)  // This works correctly
+              ItemStored("adapterPeer: " + response, Tag.Peer)  // This works correctly
           )
 
           Behaviors.receive: (ctx, msg) =>
