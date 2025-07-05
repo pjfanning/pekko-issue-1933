@@ -10,7 +10,7 @@ object TestActor:
     case Self
     case Peer
 
-  case class ExternalMessage(replyTo: ActorRef[String])
+  case class ExternalMessage(message: String, replyTo: ActorRef[String])
 
   def apply(): Behavior[Command] =
     Behaviors.receive: (ctx, msg) =>
@@ -20,11 +20,13 @@ object TestActor:
 
           // BUG: Both of these capture Tag.Peer instead of their respective values
           externalActor ! ExternalMessage(
+            "Tag.Self",
             ctx.messageAdapter[String]: response =>
               ItemStored(response, Tag.Self)  // Should capture Tag.Self but captures Tag.Peer
           )
 
           externalActor ! ExternalMessage(
+            "Tag.Peer",
             ctx.messageAdapter[String]: response =>
               ItemStored(response, Tag.Peer)  // This works correctly
           )
@@ -34,11 +36,15 @@ object TestActor:
               case itemStored: ItemStored =>
                 println(itemStored)  // Shows both as Peer
                 Behaviors.same
+              case Start =>
+                println("TestActor started")
+                Behaviors.same
 
 object ExternalActor:
   def apply(): Behavior[TestActor.ExternalMessage] =
     Behaviors.receive: (ctx, msg) =>
       msg match
-        case TestActor.ExternalMessage(replyTo) =>
-          replyTo ! "some-url"
+        case TestActor.ExternalMessage(message, replyTo) =>
+          println("Received message in ExternalActor: " + message)
+          replyTo ! message
           Behaviors.same
